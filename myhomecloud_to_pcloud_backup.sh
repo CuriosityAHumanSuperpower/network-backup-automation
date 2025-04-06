@@ -6,7 +6,7 @@
 MYHOMECLOUD_REMOTE="\\\\MYCLOUD-HE1NBD/alex/"    # Replace with your rclone remote for myhomecloud
 PCLOUD_REMOTE="P:/"                              # Replace with your rclone remote for pCloud
 BACKUP_BASE="myhomecloud_backup/"
-BACKUP_BASE_CRYPTO="Crypto Folder/$BACKUP_BASE/"
+BACKUP_BASE_CRYPTO="Crypto Folder/$BACKUP_BASE"
 LOG_FOLDER="$PCLOUD_REMOTE/logs/"
 LOG_FILE="$LOG_FOLDER/rclone_myhomecloud_backup.log"
 STATE_FILE="$LOG_FOLDER/.rclone_monthly_transfer"      # File to track monthly transfer
@@ -72,8 +72,9 @@ backup_folder() {
 }
 
 # Backup @DOCUMENTS
+backup_folder "@DOCUMENTS/ARCHIVES" "$BACKUP_BASE/@DOCUMENTS/ARCHIVES"
+backup_folder "@DOCUMENTS/PROGRAMMATION" "$BACKUP_BASE/@DOCUMENTS/PROGRAMMATION"
 backup_folder "@DOCUMENTS/ADMIN/" "$BACKUP_BASE_CRYPTO/@DOCUMENTS/ADMIN"
-backup_folder "@DOCUMENTS/" "$BACKUP_BASE/@DOCUMENTS"
 
 # Backup @SOUVENIRS
 backup_folder "@SOUVENIRS/" "$BACKUP_BASE/@SOUVENIRS"
