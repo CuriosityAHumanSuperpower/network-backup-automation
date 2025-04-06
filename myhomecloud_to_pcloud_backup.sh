@@ -48,7 +48,7 @@ backup_folder() {
 
     # Perform the sync with the remaining transfer quota
     rclone sync "$MYHOMECLOUD_REMOTE$source" "$PCLOUD_REMOTE$destination" \
-        --max-transfer="$REMAINING_TRANSFER" --log-file="$LOG_FILE" --log-level INFO
+        --max-transfer="$REMAINING_TRANSFER" --compress --log-file="$LOG_FILE" --log-level INFO
 
     # Capture the transferred bytes from the log
     TRANSFERRED=$(grep -oP '\d+(?= Bytes Transferred)' "$LOG_FILE" | tail -1)
