@@ -51,13 +51,22 @@ backup_folder() {
         --max-transfer="$REMAINING_TRANSFER" --compress --log-file="$LOG_FILE" --log-level INFO
 
     # Capture the transferred bytes from the log
-    TRANSFERRED=$(grep -oP '\d+(?= Bytes Transferred)' "$LOG_FILE" | tail -1)
+    TRANSFERRED=$(grep -oP 'Transferred:\s+\K[\d.]+\s\w+' "$LOG_FILE" | tail -1)
+
+    # Convert the transferred value to bytes
+    if [[ "$TRANSFERRED" == *KiB ]]; then
+        TRANSFERRED_BYTES=$(echo "$TRANSFERRED" | awk '{printf "%.0f", $1 * 1024}')
+    elif [[ "$TRANSFERRED" == *MiB ]]; then
+        TRANSFERRED_BYTES=$(echo "$TRANSFERRED" | awk '{printf "%.0f", $1 * 1024 * 1024}')
+    elif [[ "$TRANSFERRED" == *GiB ]]; then
+        TRANSFERRED_BYTES=$(echo "$TRANSFERRED" | awk '{printf "%.0f", $1 * 1024 * 1024 * 1024}')
+    else
+        TRANSFERRED_BYTES=0
+    fi
 
     # Update the total transfer
-    if [ -n "$TRANSFERRED" ]; then
-        CURRENT_TRANSFER=$((CURRENT_TRANSFER + TRANSFERRED))
-        echo "$CURRENT_TRANSFER" > "$STATE_FILE"
-    fi
+    CURRENT_TRANSFER=$((CURRENT_TRANSFER + TRANSFERRED_BYTES))
+    echo "$CURRENT_TRANSFER" > "$STATE_FILE"
 
     echo "$(date): Finished backup of $source to $destination" >> "$LOG_FILE"
 }
