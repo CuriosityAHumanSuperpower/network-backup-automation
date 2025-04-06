@@ -63,7 +63,8 @@ backup_folder() {
 }
 
 # Backup @DOCUMENTS
-backup_folder "@DOCUMENTS/" "$BACKUP_BASE_CRYPTO/@DOCUMENTS"
+backup_folder "@DOCUMENTS/ADMIN" "$BACKUP_BASE_CRYPTO/@DOCUMENTS/ADMIN"
+backup_folder "@DOCUMENTS/" "$BACKUP_BASE/@DOCUMENTS"
 
 # Backup @SOUVENIRS
 backup_folder "@SOUVENIRS/" "$BACKUP_BASE/@SOUVENIRS"
