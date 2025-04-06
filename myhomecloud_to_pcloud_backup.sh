@@ -31,6 +31,9 @@ fi
 # Read the current transfer total from the state file
 CURRENT_TRANSFER=$(cat "$STATE_FILE")
 
+# Trap to ensure CURRENT_TRANSFER is saved on exit
+trap 'echo "$CURRENT_TRANSFER" > "$STATE_FILE"; echo "$(date): Script exited. Transfer state saved." >> "$LOG_FILE"' EXIT
+
 # Backup function
 backup_folder() {
     local source="$1"
