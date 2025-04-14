@@ -58,6 +58,53 @@ This repository contains a Bash script to automate the backup of folders and fil
 
 ---
 
+## **Task Scheduler Setup on Windows 11**
+
+To automate the execution of the `myhomecloud_to_pcloud_backup.sh` script on Windows 11 every time a user logs in, follow these steps:
+
+1. **Open Task Scheduler**:
+   - Press `Win + S`, type `Task Scheduler`, and press `Enter`.
+
+2. **Create a New Task**:
+   - In the Task Scheduler window, click on `Action` > `Create Task`.
+
+3. **General Settings**:
+   - In the `General` tab:
+     - Enter a name for the task, e.g., `pCloud Backup`.
+     - Select `Run only when user is logged on`.
+     - Check `Run with highest privileges`.
+
+4. **Trigger Configuration**:
+   - Go to the `Triggers` tab and click `New`.
+   - In the `Begin the task` dropdown, select `At log on`.
+   - Ensure `Any user` is selected.
+   - Click `OK`.
+
+5. **Action Configuration**:
+   - Go to the `Actions` tab and click `New`.
+   - In the `Action` dropdown, select `Start a program`.
+   - In the `Program/script` field, enter the path to `bash.exe` (e.g., `C:\Program Files\Git\bin\bash.exe` if using Git Bash).
+   - In the `Add arguments` field, enter the full path to the `myhomecloud_to_pcloud_backup.sh` script, e.g.:
+     ```bash
+     "d:/APPRENTISSAGE/PROGRAMMATION/pcloud/myhomecloud_to_pcloud_backup.sh"
+     ```
+   - Click `OK`.
+
+6. **Retry Settings**:
+   - Go to the `Settings` tab:
+     - Check `If the task fails, restart every:` and set it to `1 minute`.
+     - Set `Attempt to restart up to:` to `3 times`.
+
+7. **Save the Task**:
+   - Click `OK` to save the task.
+   - You may be prompted to enter your user credentials.
+
+8. **Verify the Task**:
+   - In the Task Scheduler library, locate your task, right-click it, and select `Run` to test it.
+   - Check the logs or the `logs/` directory to ensure the script executed successfully.
+
+---
+
 ## **Script Details**
 
 ### `myhomecloud_to_pcloud_backup.sh`
