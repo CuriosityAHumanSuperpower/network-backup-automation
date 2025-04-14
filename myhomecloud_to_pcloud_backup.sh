@@ -16,7 +16,7 @@ START_DAY=16                                     # Day of the month to reset the
 
 # Ensure the state file exists
 if [ ! -f "$STATE_FILE" ]; then
-    echo "0" > "$STATE_FILE"
+    echo "$(date +%d-%m-%Y"-"%H:%M:%S) $MAX_TRANSFER_BYTES" > "$STATE_FILE"
 fi
 
 # Reset the monthly transfer if the current day is >= 16 and the file's last modification date is before the 16th
@@ -24,16 +24,16 @@ CURRENT_DAY=$(date +%d)
 if [ "$CURRENT_DAY" -ge "$START_DAY" ]; then
     LAST_MODIFIED_DAY=$(date -r "$STATE_FILE" +%d 2>/dev/null || echo "0")
     if [ "$LAST_MODIFIED_DAY" -lt "$START_DAY" ]; then
-        echo "0" > "$STATE_FILE"
+        echo "$(date +%d-%m-%Y"-"%H:%M:%S) $MAX_TRANSFER_BYTES" > "$STATE_FILE"
         echo "$(date): Monthly transfer reset." >> "$LOG_FILE"
     fi
 fi
 
 # Read the current transfer total from the state file
-CURRENT_TRANSFER=$(cat "$STATE_FILE")
+CURRENT_TRANSFER=$(tail -1 "$STATE_FILE" | awk '{print $2}')
 
 # Trap to ensure CURRENT_TRANSFER is saved on exit
-trap 'echo "$CURRENT_TRANSFER" > "$STATE_FILE"; echo "$(date): Script exited. Transfer state saved." >> "$LOG_FILE"' EXIT
+trap 'echo "$(date +%d-%m-%Y"-"%H:%M:%S) $((MAX_TRANSFER_BYTES - CURRENT_TRANSFER))" >> "$STATE_FILE"; echo "$(date): Script exited. Transfer state saved." >> "$LOG_FILE"' EXIT
 
 # Backup function
 backup_folder() {
@@ -70,7 +70,7 @@ backup_folder() {
 
     # Update the total transfer
     CURRENT_TRANSFER=$((CURRENT_TRANSFER + TRANSFERRED_BYTES))
-    echo "$CURRENT_TRANSFER" > "$STATE_FILE"
+    echo "$(date +%d-%m-%Y"-"%H:%M:%S) $((MAX_TRANSFER_BYTES - CURRENT_TRANSFER))" >> "$STATE_FILE"
 
     echo "$(date): Finished backup of $source to $destination" >> "$LOG_FILE"
 }
