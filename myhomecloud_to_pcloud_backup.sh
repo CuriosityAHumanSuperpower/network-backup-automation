@@ -3,16 +3,16 @@
 # filepath: d:\APPRENTISSAGE\PROGRAMMATION\pcloud\myhomecloud_to_pcloud_backup.sh
 
 # Variables
-MYHOMECLOUD_REMOTE="\\\\MYCLOUD-HE1NBD/alex/"    # Replace with your rclone remote for myhomecloud
-PCLOUD_REMOTE="P:/"                              # Replace with your rclone remote for pCloud
+MYHOMECLOUD_REMOTE="\\\\MYCLOUD-HE1NBD/alex/"       # Replace with your rclone remote for myhomecloud
+PCLOUD_REMOTE="P:/"                                 # Replace with your rclone remote for pCloud
 BACKUP_BASE="myhomecloud_backup/"
 BACKUP_BASE_CRYPTO="Crypto Folder/$BACKUP_BASE"
 #LOG_FOLDER="$PCLOUD_REMOTE/logs/"
 LOG_FOLDER="./logs/"
 LOG_FILE="$LOG_FOLDER/rclone_myhomecloud_backup_$(date +%d-%m-%Y"-"%H:%M:%S).log"
-STATE_FILE="$LOG_FOLDER/.rclone_monthly_transfer"      # File to track monthly transfer
-MAX_TRANSFER_BYTES=$((50 * 1024 * 1024 * 1024))  # 50GB in bytes
-START_DAY=16                                     # Day of the month to reset the limit
+STATE_FILE="$LOG_FOLDER/.rclone_monthly_transfer"   # File to track monthly transfer
+MAX_TRANSFER_BYTES=$((50 * 1024 * 1024 * 1024))     # 50GB in bytes
+START_DAY=16                                        # Day of the month to reset the limit
 
 # Ensure the state file exists
 if [ ! -f "$STATE_FILE" ]; then
@@ -34,6 +34,20 @@ CURRENT_TRANSFER=$(tail -1 "$STATE_FILE" | awk '{print $2}')
 
 # Trap to ensure CURRENT_TRANSFER is saved on exit
 trap 'echo "$(date +%d-%m-%Y"-"%H:%M:%S) $((MAX_TRANSFER_BYTES - CURRENT_TRANSFER))" >> "$STATE_FILE"; echo "$(date): Script exited. Transfer state saved." >> "$LOG_FILE"' EXIT
+
+# Function to convert transferred value to bytes
+convert_to_bytes() {
+    local transferred="$1"
+    if [[ "$transferred" == *KiB ]]; then
+        echo "$(echo "$transferred" | awk '{printf "%.0f", $1 * 1024}')"
+    elif [[ "$transferred" == *MiB ]]; then
+        echo "$(echo "$transferred" | awk '{printf "%.0f", $1 * 1024 * 1024}')"
+    elif [[ "$transferred" == *GiB ]]; then
+        echo "$(echo "$transferred" | awk '{printf "%.0f", $1 * 1024 * 1024 * 1024}')"
+    else
+        echo "0"
+    fi
+}
 
 # Backup function
 backup_folder() {
@@ -57,16 +71,8 @@ backup_folder() {
     # Capture the transferred bytes from the log
     TRANSFERRED=$(grep -oP 'Transferred:\s+\K[\d.]+\s\w+' "$LOG_FILE" | tail -1)
 
-    # Convert the transferred value to bytes
-    if [[ "$TRANSFERRED" == *KiB ]]; then
-        TRANSFERRED_BYTES=$(echo "$TRANSFERRED" | awk '{printf "%.0f", $1 * 1024}')
-    elif [[ "$TRANSFERRED" == *MiB ]]; then
-        TRANSFERRED_BYTES=$(echo "$TRANSFERRED" | awk '{printf "%.0f", $1 * 1024 * 1024}')
-    elif [[ "$TRANSFERRED" == *GiB ]]; then
-        TRANSFERRED_BYTES=$(echo "$TRANSFERRED" | awk '{printf "%.0f", $1 * 1024 * 1024 * 1024}')
-    else
-        TRANSFERRED_BYTES=0
-    fi
+    # Convert the transferred value to bytes using the new function
+    TRANSFERRED_BYTES=$(convert_to_bytes "$TRANSFERRED")
 
     # Update the total transfer
     CURRENT_TRANSFER=$((CURRENT_TRANSFER + TRANSFERRED_BYTES))
