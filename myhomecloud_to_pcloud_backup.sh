@@ -49,7 +49,30 @@ convert_to_bytes() {
     fi
 }
 
-# Backup function
+# Function to monitor rclone log and update STATE_FILE
+monitor_rclone_log() {
+    local log_file="$1"
+
+    # Monitor the log file for "Transferred" updates
+    tail -f "$log_file" | while read -r line; do
+        # Check if the line contains "Transferred:"
+        if [[ "$line" =~ Transferred:\s+([0-9.]+\s\w+) ]]; then
+            # Extract the transferred value (e.g., "395.855 MiB")
+            TRANSFERRED="${BASH_REMATCH[1]}"
+
+            # Convert the transferred value to bytes
+            TRANSFERRED_BYTES=$(convert_to_bytes "$TRANSFERRED")
+
+            # Update the total transfer
+            CURRENT_TRANSFER=$((CURRENT_TRANSFER + TRANSFERRED_BYTES))
+
+            # Append the updated transfer state to the STATE_FILE
+            echo "$(date +%d-%m-%Y"-"%H:%M:%S) $((MAX_TRANSFER_BYTES - CURRENT_TRANSFER))" >> "$STATE_FILE"
+        fi
+    done
+}
+
+# Updated backup function
 backup_folder() {
     local source="$1"
     local destination="$2"
@@ -64,19 +87,17 @@ backup_folder() {
         exit 0
     fi
 
+    # Start monitoring the log file in the background
+    monitor_rclone_log "$LOG_FILE" &
+    MONITOR_PID=$!
+
     # Perform the sync with the remaining transfer quota
     rclone sync "$MYHOMECLOUD_REMOTE$source" "$PCLOUD_REMOTE$destination" \
         --max-transfer="$REMAINING_TRANSFER" --log-file="$LOG_FILE" --log-level INFO
 
-    # Capture the transferred bytes from the log
-    TRANSFERRED=$(grep -oP 'Transferred:\s+\K[\d.]+\s\w+' "$LOG_FILE" | tail -1)
-
-    # Convert the transferred value to bytes using the new function
-    TRANSFERRED_BYTES=$(convert_to_bytes "$TRANSFERRED")
-
-    # Update the total transfer
-    CURRENT_TRANSFER=$((CURRENT_TRANSFER + TRANSFERRED_BYTES))
-    echo "$(date +%d-%m-%Y"-"%H:%M:%S) $((MAX_TRANSFER_BYTES - CURRENT_TRANSFER))" >> "$STATE_FILE"
+    # Wait for the monitor process to finish
+    kill "$MONITOR_PID" 2>/dev/null
+    wait "$MONITOR_PID" 2>/dev/null
 
     echo "$(date): Finished backup of $source to $destination" >> "$LOG_FILE"
 }
