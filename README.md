@@ -1,18 +1,18 @@
-# **pCloud Backup Automation**
+# **Network Backup Automation**
 
-This repository contains a Bash script to automate the backup of folders and files from a local network (`myhomecloud`) to a pCloud account using `rclone`. The script includes features such as monthly transfer limits, real-time progress tracking, and robust error handling to ensure reliable backups.
+This repository contains a Bash script to automate the backup of folders and files from one network location to another using `rclone`. The script includes features such as monthly transfer limits, real-time progress tracking, and robust error handling to ensure reliable backups.
 
 ---
 
 ## **Features**
 
 - **Automated Backups**:
-  - Syncs specific folders (`@DOCUMENTS`, `@SOUVENIRS`, `@MULTIMEDIA`) from a local network to pCloud.
-  - Supports encrypted backups for sensitive folders (e.g., `@DOCUMENTS/ADMIN`).
+  - Syncs specific folders from a source network to a destination network.
+  - Supports encrypted backups for sensitive folders.
 
 - **Monthly Transfer Limit**:
-  - Limits data transfer to **50GB per month**.
-  - Resets the transfer limit on the **16th of each month**.
+  - Limits data transfer to a configurable amount (default: **50GB per month**).
+  - Resets the transfer limit on a configurable day of the month (default: **16th**).
 
 - **Real-Time Progress Tracking**:
   - Monitors the `rclone` log in real-time to track transferred data.
@@ -42,25 +42,37 @@ This repository contains a Bash script to automate the backup of folders and fil
    - Follow the [official installation guide](https://rclone.org/install/).
 
 2. **Configure `rclone` Remotes**:
-   - Set up remotes for both your local network (`myhomecloud`) and pCloud:
+   - Set up remotes for both your source and destination networks:
      ```bash
      rclone config
      ```
    - Example remote names:
-     - `myhomecloud`: Local network storage.
-     - `pcloud`: pCloud account.
+     - `source_remote`: Source network storage.
+     - `destination_remote`: Destination network storage.
 
 3. **Clone the Repository**:
    ```bash
    git clone <repository-url>
-   cd pcloud-backup-automation
+   cd network-backup-automation
    ```
+
+4. **Edit the CSV File**:
+   - Open the `backup_paths.csv` file in the repository.
+   - Add or modify rows to specify the source and destination paths for backups. Each row should have the following format:
+     ```csv
+     source,destination
+     ```
+   - Example:
+     ```csv
+     /path/to/source/folder1/,destination:/backup/folder1
+     /path/to/source/folder2/,destination:/backup/folder2
+     ```
 
 ---
 
 ## **Task Scheduler Setup on Windows 11**
 
-To automate the execution of the `myhomecloud_to_pcloud_backup.sh` script on Windows 11 every time a user logs in, follow these steps:
+To automate the execution of the `network_backup.sh` script on Windows 11 every time a user logs in, follow these steps:
 
 1. **Open Task Scheduler**:
    - Press `Win + S`, type `Task Scheduler`, and press `Enter`.
@@ -70,7 +82,7 @@ To automate the execution of the `myhomecloud_to_pcloud_backup.sh` script on Win
 
 3. **General Settings**:
    - In the `General` tab:
-     - Enter a name for the task, e.g., `pCloud Backup`.
+     - Enter a name for the task, e.g., `Network Backup`.
      - Select `Run only when user is logged on`.
      - Check `Run with highest privileges`.
 
@@ -84,9 +96,9 @@ To automate the execution of the `myhomecloud_to_pcloud_backup.sh` script on Win
    - Go to the `Actions` tab and click `New`.
    - In the `Action` dropdown, select `Start a program`.
    - In the `Program/script` field, enter the path to `bash.exe` (e.g., `C:\Program Files\Git\bin\bash.exe` if using Git Bash).
-   - In the `Add arguments` field, enter the full path to the `myhomecloud_to_pcloud_backup.sh` script, e.g.:
+   - In the `Add arguments` field, enter the full path to the `network_backup.sh` script, e.g.:
      ```bash
-     "d:/APPRENTISSAGE/PROGRAMMATION/pcloud/myhomecloud_to_pcloud_backup.sh"
+     "{FULL PATH TO}/network_backup.sh"
      ```
    - Click `OK`.
 
@@ -107,12 +119,12 @@ To automate the execution of the `myhomecloud_to_pcloud_backup.sh` script on Win
 
 ## **Script Details**
 
-### `myhomecloud_to_pcloud_backup.sh`
+### `network_backup.sh`
 
-This Bash script automates the backup process from `myhomecloud` to pCloud using `rclone`. Below is a breakdown of its functionality:
+This Bash script automates the backup process from a source network to a destination network using `rclone`. Below is a breakdown of its functionality:
 
 1. **Variables**:
-   - Defines remotes for `myhomecloud` and `pCloud`.
+   - Defines remotes for the source and destination networks.
    - Sets up paths for backups, logs, and a state file to track monthly transfer limits.
    - Configures a **50GB monthly transfer limit** and resets it on the **16th of each month**.
 
@@ -128,22 +140,14 @@ This Bash script automates the backup process from `myhomecloud` to pCloud using
    - Uses a `trap` to save the current transfer state if the script is interrupted or crashes.
 
 5. **Backup Functionality**:
-   - Defines a `backup_folder` function to sync specific folders from `myhomecloud` to pCloud.
-   - Ensures the transfer does not exceed the remaining monthly quota.
-   - Logs all operations for debugging and auditing.
+   - Reads the `backup_paths.csv` file to get the source and destination paths.
+   - Runs the `backup_folder` function for each row in the CSV file.
 
-6. **Folder Backups**:
-   - Backs up the following folders:
-     - `@DOCUMENTS/ADMIN` (encrypted).
-     - `@DOCUMENTS/ARCHIVES`, `@DOCUMENTS/PROGRAMMATION`.
-     - `@SOUVENIRS`.
-     - `@MULTIMEDIA`.
-
-7. **Logging**:
+6. **Logging**:
    - Logs all operations to a timestamped log file in the `logs/` directory.
 
 To execute the script:
 ```bash
-bash myhomecloud_to_pcloud_backup.sh
+bash network_backup.sh
 ```
 Ensure that `rclone` is properly configured and the required remotes are accessible.
