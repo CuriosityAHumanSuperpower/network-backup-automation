@@ -1,0 +1,3 @@
+source,destination
+D:path/to/source/folder2,P:path/to/destination/folder2
+D:path/to/source/folder1,P:path/to/destination/folder1
