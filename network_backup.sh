@@ -5,7 +5,7 @@ source "$(dirname "$0")/config.sh"
 
 # Ensure the state file exists
 if [ ! -f "$state_file" ]; then
-    echo "$(date +%Y-%m-%d"-"%H:%M:%S) $max_transfer_bytes" > "$state_file"
+    echo "$(date +%Y-%m-%d"-"%H:%M:%S) 0" > "$state_file"
 fi
 
 # Reset the monthly transfer if the current day is >= $start_day and the file's last modification date is before $start_day
@@ -13,7 +13,7 @@ current_day=$(date +%d)
 if [ "$current_day" -ge "$start_day" ]; then
     last_modified_day=$(date -r "$state_file" +%d 2>/dev/null || echo "0")
     if [ "$last_modified_day" -lt "$start_day" ]; then
-        echo "$(date +%Y-%m-%d"-"%H:%M:%S) $max_transfer_bytes" > "$state_file"
+        echo "$(date +%Y-%m-%d"-"%H:%M:%S) 0" > "$state_file"
         echo "$(date): Monthly transfer reset." >> "$log_file"
     fi
 fi
