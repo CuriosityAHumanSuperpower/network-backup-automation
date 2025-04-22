@@ -2,8 +2,8 @@
 
 # Logs
 log_folder="./logs/"
-log_file="$log_folder/rclone_myhomecloud_backup_$(date +%Y-%m-%d"-"%H.%M.%S).log"
-state_file="$log_folder/.rclone_monthly_transfer"   # File to track monthly transfer
+log_file_template_name="rclone_myhomecloud_backup"
+log_file="$log_folder/$log_file_template_name_$(date +%Y-%m-%d"-"%H.%M.%S).log"
 
 # Transfer limits
 max_transfer_bytes=$((50 * 1024 * 1024 * 1024))     # 50GB in bytes
