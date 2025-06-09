@@ -1,3 +1,4 @@
 logs/*
 backup_paths.csv
+backup_paths_backup.csv
 *code-workspace

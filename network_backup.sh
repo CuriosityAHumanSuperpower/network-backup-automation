@@ -3,11 +3,6 @@
 # Source the configuration file
 source "$(dirname "$0")/config.sh"
 
-# Ensure the state file exists
-if [ ! -f "$state_file" ]; then
-    echo "$(date +%Y-%m-%d"-"%H:%M:%S) 0" > "$state_file"
-fi
-
 # Function to reset monthly transfer to max if conditions are met
 reset_monthly_transfert_to_max() {
     local last_modified_day="$1"
