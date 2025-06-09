@@ -107,6 +107,9 @@ backup_folder() {
     echo "$(date): Finished backup of $source_folder to $destination_folder" >> "$log_file"
 }
 
+#Deleting \r (CR) characters from the CSV file
+sed -i 's/\r$//' "$(dirname "$0")/backup_paths.csv"
+
 # Read the CSV file and run backup_folder for each row
 while IFS=',' read -r source_path destination_path; do
     # Skip the header row
