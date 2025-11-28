@@ -39,8 +39,7 @@ convert_to_bytes() {
 # Function to calculate remaining transfer based on the last log file
 calculate_remaining_transfer() {
     # Find the most recent log file by creation date
-    last_log_file=$(ls -t "$log_folder"/"$log_file_template_name"_*.log | head -n 1)
-
+    last_log_file=$(ls -t "$log_folder"/*.log 2>/dev/null | head -n 1)
     if [ -z "$last_log_file" ]; then
         # No previous log file exists, set remaining transfer to max
         echo "$(date): No previous log file found. Setting remaining transfer to max." >> "$log_file"
@@ -61,10 +60,11 @@ calculate_remaining_transfer() {
     fi
 
     # Get the last modification date just above the matching TRANSFERRED line
-    last_modification_date=$(head -n "$last_transferred_line_number" "$last_log_file" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}')
+    last_modification_date=$(head -n "$last_transferred_line_number" "$last_log_file" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}' | tail -n 1)
+    last_modification_day=$(echo "$last_modification_date" | awk -F'-' '{print $3}')
 
     # Check if reset conditions are met
-    if reset_monthly_transfert_to_max "last_modification_date"; then
+    if reset_monthly_transfert_to_max "$last_modification_day"; then
         echo "$(date): Reset conditions met. Ignoring previous TRANSFERRED data." >> "$log_file"
         echo "$max_transfer_bytes"
         return
@@ -101,8 +101,13 @@ backup_folder() {
     fi
 
     # Perform the sync with the remaining transfer quota
-    rclone sync "$source_folder" "$destination_folder" \
-        --max-transfer="$remaining_transfer" --log-file="$log_file" --log-level INFO
+    rclone copy "$source_folder" "$destination_folder" \
+        --max-transfer="$remaining_transfer" \
+        --log-file="$log_file" \
+        --log-level INFO \
+        --progress \
+        --exclude "Thumbs.db,desktop.ini"\
+        --multi-thread-streams=0
 
     echo "$(date): Finished backup of $source_folder to $destination_folder" >> "$log_file"
 }
