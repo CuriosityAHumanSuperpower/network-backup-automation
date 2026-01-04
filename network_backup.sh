@@ -106,8 +106,10 @@ backup_folder() {
         --log-file="$log_file" \
         --log-level INFO \
         --progress \
-        --exclude "Thumbs.db,desktop.ini"\
-        --multi-thread-streams=0
+        --exclude "Thumbs.db,desktop.ini,/2021_Health Data Hub/Save"\
+        --multi-thread-streams=0 \
+        --check-first \
+        -c
 
     echo "$(date): Finished backup of $source_folder to $destination_folder" >> "$log_file"
 }
