@@ -1,6 +1,6 @@
 # **Network Backup Automation**
 
-This repository contains a Bash script to automate the backup of folders and files from one network location to another using `rclone`. The script includes features such as monthly transfer limits, real-time progress tracking, and robust error handling to ensure reliable backups.
+This repository contains a Bash script to automate the backup of folders and files from one network location to another using `rclone`. The script includes features such as per-run transfer limits, progress tracking, and logging to ensure reliable backups.
 
 ---
 
@@ -10,20 +10,15 @@ This repository contains a Bash script to automate the backup of folders and fil
   - Syncs specific folders from a source network to a destination network.
   - Supports encrypted backups for sensitive folders.
 
-- **Monthly Transfer Limit**:
-  - Limits data transfer to a configurable amount (default: **50GB per month**).
-  - Resets the transfer limit on a configurable day of the month (default: **16th**).
+- **Per-Run Transfer Limit**:
+  - Limits data transfer to a configurable amount (default: **50GB per backup run**).
 
-- **Real-Time Progress Tracking**:
-  - Monitors the `rclone` log in real-time to track transferred data.
-  - Updates a state file (`.rclone_monthly_transfer`) with the remaining transfer quota.
-
-- **Crash Recovery**:
-  - Ensures the current transfer state is saved even if the script crashes or is interrupted.
-  - Resumes from the last saved state on the next run.
+- **Progress Tracking**:
+  - Uses `rclone`'s built-in progress and logging features.
 
 - **Detailed Logging**:
-  - Logs all backup operations to a timestamped log file for debugging and auditing.
+  - Logs all backup operations to a timestamped log file.
+  - Records the date and transfer limit for each run in a CSV file.
 
 ---
 
@@ -123,28 +118,20 @@ To automate the execution of the `network_backup.sh` script on Windows 11 every 
 
 This Bash script automates the backup process from a source network to a destination network using `rclone`. Below is a breakdown of its functionality:
 
-1. **Variables**:
-   - Defines remotes for the source and destination networks.
-   - Sets up paths for backups, logs, and a state file to track monthly transfer limits.
-   - Configures a **50GB monthly transfer limit** and resets it on the **16th of each month**.
+1. **Configuration**:
+   - Sources settings from `config.sh`, including transfer limits, log paths, and exclude patterns.
 
-2. **Monthly Transfer Management**:
-   - Ensures the state file exists and initializes it if missing.
-   - Resets the transfer limit if the current date is on or after the 16th and the state file was last modified before the 16th.
+2. **Per-Run Transfer Management**:
+   - Sets the transfer limit to the configured maximum (50GB) for each backup run.
 
-3. **Real-Time Progress Tracking**:
-   - Monitors the `rclone` log file to track transferred data in real-time.
-   - Updates the state file with the remaining transfer quota after each transfer.
+3. **Logging**:
+   - Logs operations to a timestamped log file.
+   - Records the date and transfer limit for each run in `transfer_log.csv`.
 
-4. **Crash Recovery**:
-   - Uses a `trap` to save the current transfer state if the script is interrupted or crashes.
-
-5. **Backup Functionality**:
+4. **Backup Functionality**:
    - Reads the `backup_paths.csv` file to get the source and destination paths.
-   - Runs the `backup_folder` function for each row in the CSV file.
-
-6. **Logging**:
-   - Logs all operations to a timestamped log file in the `logs/` directory.
+   - Uses `rclone sync` to perform incremental backups, copying only changed files and deleting removed ones from the destination.
+   - Applies exclude patterns and transfer limits.
 
 To execute the script:
 ```bash
